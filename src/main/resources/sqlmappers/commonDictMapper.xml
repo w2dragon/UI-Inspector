@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="lg.cns.ds.mapper.commonDictMapper">
+	<sql id = "sqlSelectList">
+		SELECT
+			id as id
+			, grp_id as grpId
+			, grp_code as grpCode
+			, name
+			, attr1
+			, attr2
+			, attr3
+			FROM tb_common_dict
+	</sql>
+	<sql id="sqlSelectListCondition">
+		WHERE
+			tb_common_dict.grp_id = #{grpId}
+	</sql>
+	<sql id="sqlSelectListOrderBy">
+		ORDER BY
+			name
+		<!-- collate "C" -->
+	</sql>
+
+	<select id="selectList"  parameterType="map" resultType="lg.cns.ds.domain.CommonDict">
+		<include refid="sqlSelectList" />
+		<include refid="sqlSelectListCondition" />
+		<include refid="sqlSelectListOrderBy" />
+	</select>
+</mapper>

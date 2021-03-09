@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="lg.cns.ds.mapper.cmpnMngMapper">
+	<select id="selectCount" parameterType="map" resultType="java.lang.Integer">
+		SELECT COUNT(UI_CD)
+		  FROM TB_UI_MNG
+		<where>
+		  1=1
+		<if test="dateStart != null and dateStart != ''">			
+			AND LST_MDDT <![CDATA[ >= ]]> STR_TO_DATE(#{dateStart},'%Y-%m-%d %H:%i:%S')
+		</if>
+		<if test="dateEnd != null and dateEnd != ''">			
+			AND LST_MDDT <![CDATA[ <= ]]> STR_TO_DATE(#{dateEnd},'%Y-%m-%d %H:%i:%S')
+		</if>
+		<if test="selected_uitool != null and selected_uitool != ''">			
+			AND UI_CD = #{selected_uitool}
+		</if>
+		</where>
+	</select>
+	
+	<select id="selectUItoolList" parameterType="map" resultType="lg.cns.ds.domain.UIMng">
+		SELECT UI_CD
+              ,UI_NM
+              ,USE_YN
+              ,FRST_CRTR_ID
+              ,FRST_CRDT
+              ,LST_MDFR_ID
+              ,LST_MDDT
+		  FROM TB_UI_MNG
+		<where>
+		  1=1
+		<if test="dateStart != null and dateStart != ''">			
+			AND LST_MDDT <![CDATA[ >= ]]> STR_TO_DATE(#{dateStart},'%Y-%m-%d %H:%i:%S')
+		</if>
+		<if test="dateEnd != null and dateEnd != ''">			
+			AND LST_MDDT <![CDATA[ <= ]]> STR_TO_DATE(#{dateEnd},'%Y-%m-%d %H:%i:%S')
+		</if>
+		<if test="selected_uitool != null and selected_uitool != ''">			
+			AND UI_CD = #{selected_uitool}
+		</if>
+		</where>
+	</select>
+	<select id="selectCmpnCount" parameterType="map" resultType="java.lang.Integer">
+		SELECT COUNT(UI_CD)
+		  FROM TB_UI_CMPN_MNG
+		 WHERE UI_CD = #{uiCd}
+	</select>
+	
+	<select id="selectCmpnList" parameterType="map" resultType="lg.cns.ds.domain.UICmpnMng">
+		SELECT UI_CD
+              ,CMPN_CD
+              ,CMPN_NM
+              ,USE_YN
+              ,FRST_CRTR_ID
+              ,FRST_CRDT
+              ,LST_MDFR_ID
+              ,LST_MDDT
+		  FROM TB_UI_CMPN_MNG
+		 WHERE UI_CD = #{uiCd}
+	</select>
+
+    <select id="selectCmprCmpnPrptyList" parameterType="map" resultType="lg.cns.ds.domain.CmpnVldtRsltHst">
+		SELECT C.PRJT_CD
+		      ,H.PRJT_NM
+		      ,C.UI_CD
+		      ,H.UI_NM
+		      ,C.CMPN_CD
+		      ,H.CMPN_NM
+		      ,C.PRPTY
+		      ,C.PRPTY_VL
+		      ,C.SCRP_CNTN
+		      ,H.DFLT_VL
+		      ,A.VLDT_SBJ_TERM_CD
+		      ,A.VLDT_SBJ_TERM_NM
+		      ,A.EVNT_NM
+		      ,C.VLDT_RULE_CD
+		      ,C.VLDT_RULE_NM
+		      ,CONCAT(H.CMPN_NM, A.VLDT_SBJ_TERM_CD) AS CMPN_KEY
+		  FROM tb_vldt_term_mstr A
+		  INNER JOIN tb_vldt_rule_term_mp B
+		  ON A.VLDT_SBJ_TERM_CD = B.VLDT_SBJ_TERM_CD
+		  INNER JOIN tb_vldt_rule_mstr C
+		  ON B.VLDT_RULE_CD = C.VLDT_RULE_CD
+		  INNER JOIN (SELECT D.PRJT_CD
+		                    ,D.PRJT_NM 
+		                    ,E.UI_CD
+		                    ,E.UI_NM
+		                    ,F.CMPN_CD
+		                    ,F.CMPN_NM
+		                    ,G.PRPTY
+		                    ,G.DFLT_VL
+		                FROM tb_prjt_info D
+					    INNER JOIN tb_ui_mng E
+					    ON D.PRJT_CD = E.PRJT_CD
+					    INNER JOIN tb_ui_cmpn_mng F
+					    ON E.PRJT_CD = F.PRJT_CD
+					    AND E.UI_CD = F.UI_CD
+					    INNER JOIN tb_cmpn_prpty_mng G
+					    ON F.PRJT_CD = G.PRJT_CD
+					    AND F.UI_CD = G.UI_CD
+					    AND F.CMPN_CD = G.CMPN_CD
+					   WHERE E.USE_YN = 'Y'
+					     AND F.USE_YN = 'Y'
+						 AND G.CHK_YN = 'Y') H
+			ON C.PRJT_CD = H.PRJT_CD
+			AND C.UI_CD = H.UI_CD
+			AND C.CMPN_CD = H.CMPN_CD
+			AND C.PRPTY = H.PRPTY
+		 WHERE A.USE_YN = 'Y'
+		   AND B.USE_YN = 'Y'
+		   AND C.USE_YN = 'Y'
+		ORDER BY A.VLDT_SBJ_TERM_CD, C.VLDT_RULE_CD
+	</select>
+
+	<select id="selectItrtSeq" parameterType="map" resultType="java.lang.Integer">
+		SELECT IFNULL(MAX(ITRT_SEQ),0)+1 AS ITRT_SEQ
+          FROM TB_VLDT_RSLT_HST
+         WHERE VLDT_DT = DATE_FORMAT(NOW(),'%Y%m%d')
+	</select>
+
+    <insert id="insertCmprCmpnPrptyResult" useGeneratedKeys="true" parameterType="java.util.HashMap">
+    	<if test="result.size != 0">
+    		INSERT INTO TB_VLDT_RSLT_HST (
+				  PRJT_CD
+				, UI_CD
+				, CMPN_CD
+				, PRPTY
+				, VLDT_SBJ_TERM_CD
+				, VLDT_RULE_CD
+				, VLDT_DT
+				, ITRT_SEQ
+				, FL_ID
+				, PRGM_CMPN_ID
+				, PRPTY_VL
+				, DFLT_VL
+				, PRGM_VL
+				, VLDT_SCRP_CNTN
+				, SCRP_EXST_YN
+				, VLDT_RST_YN
+				, RMRK
+				, FRST_CRTR_ID
+				, FRST_CRDT
+				, LST_MDFR_ID
+				, LST_MDDT
+			) VALUES
+			<foreach collection="result" item="item" separator=",">
+			(
+				  #{item.prjtCd}
+				, #{item.uiCd}
+				, #{item.cmpnCd}
+				, #{item.prpty}
+				, #{item.vldtSbjTermCd}
+				, #{item.vldtRuleCd}
+				, DATE_FORMAT(NOW(),'%Y%m%d')
+				, #{item.itrtSeq}
+				, #{item.flId}
+				, #{item.prgmCmpnId}
+				, #{item.prptyVl}
+				, #{item.dfltVl}
+				, #{item.prgmVl}
+				, #{item.vldtScrpCntn}
+				, #{item.scrpExstYn}
+				, #{item.vldtRstYn}
+				, #{item.rmrk}
+				, #{item.frstCrtrId}
+				, NOW()
+				, #{item.lstMdfrId}
+				, NOW()
+			)
+			</foreach>
+    	</if>
+    </insert>
+
+	<sql id = "sqlSelectList">
+		SELECT
+			request_id as requestId
+			, request_type as requestType
+			, request_status as requestStatus
+			, grp1.name as requestStatusText
+			, regist_status as registStatus
+			, grp3.name as registStatusText
+			, is_normal as isNormal
+			, grp2.name as isNormalText
+			, tb_domain.username as username
+			, users.firstname as firstname
+			, created_date as createdDate
+			, domain as domain
+			, type as type
+			, grp4.name as typeText
+			, word_union_kor as wordUnionKor
+			, word_union_eng as wordUnionEng
+			, data_type as dataType
+			, grp5.name as dataTypeText
+			, data_length as dataLength
+			, definition as definition
+			, word1_id as word1Id
+			, word2_id as word2Id
+			, tb_domain.rejection_reason as rejectionReason
+		FROM tb_domain
+		LEFT JOIN tb_common_dict AS grp1
+			ON
+			request_status = grp1.grp_code AND grp1.grp_id = '1'
+		LEFT JOIN tb_common_dict AS grp2
+			ON
+			is_normal = grp2.grp_code AND grp2.grp_id = '2'
+		LEFT JOIN tb_common_dict AS grp3
+			ON
+			regist_status = grp3.grp_code AND grp3.grp_id = '3'
+		LEFT JOIN tb_common_dict AS grp4
+			ON
+			type = grp4.grp_code AND grp4.grp_id = '4'
+		LEFT JOIN tb_common_dict AS grp5
+			ON
+			data_type = grp5.grp_code AND grp5.grp_id = '5'
+		LEFT JOIN users
+			ON
+			tb_domain.username = users.username
+	</sql>
+	
+	<sql id="sqlSelectListConditionApproved">
+		<where>
+			tb_domain.request_status in ('3')
+			<if test="requester != null and requester != ''">
+				AND (LOWER(tb_domain.username) = LOWER(#{requester}) OR LOWER(users.firstname) = LOWER(#{requester}))
+			</if>
+			<if test="queryContent != null and queryContent != ''">
+				<bind name="patternQueryContent" value="'%' + _parameter.queryContent + '%'" />
+				AND (LOWER(tb_domain.domain) LIKE LOWER(#{patternQueryContent}))
+			</if>
+			<if test="dateStart != null and dateStart != ''">
+				<!--  AND tb_domain.created_date <![CDATA[ >= ]]> TO_TIMESTAMP(#{dateStart}, 'YYYY-MM-DD HH24:MI:SS') -->
+				AND tb_domain.created_date <![CDATA[ >= ]]> STR_TO_DATE(#{dateStart},'%Y-%m-%d %H:%i:%S')
+
+			</if>
+			<if test="dateEnd != null and dateEnd != ''">
+				<!-- AND tb_domain.created_date <![CDATA[ <= ]]> TO_TIMESTAMP(#{dateEnd}, 'YYYY-MM-DD HH24:MI:SS')  -->
+				AND tb_domain.created_date <![CDATA[ <= ]]> STR_TO_DATE(#{dateEnd},'%Y-%m-%d %H:%i:%S')
+			</if>
+        </where>
+	</sql>
+	
+	<sql id="sqlSelectListConditionApproved2">
+		<where>
+			<if test="aSelectedRequestId != null">
+				tb_domain.request_id IN
+				<foreach item="item" collection="aSelectedRequestId" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+        </where>
+	</sql>
+	
+	<sql id="sqlSelectListConditionUser">
+		<where>
+			tb_domain.username = #{username}
+			<if test="rejectionReason != null and rejectionReason != ''">
+				<bind name="patternRejectionReason" value="'%' + _parameter.rejectionReason + '%'" />
+				AND tb_domain.rejection_reason LIKE #{patternRejectionReason}
+			</if>
+			<if test="queryContent != null and queryContent != ''">
+				<bind name="patternQueryContent" value="'%' + _parameter.queryContent + '%'" />
+				AND (LOWER(tb_domain.domain) LIKE LOWER(#{patternQueryContent}))
+			</if>
+			<if test="requestStatus != null">
+				AND tb_domain.request_status IN
+				<foreach item="item" collection="requestStatus" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="dateStart != null and dateStart != ''">
+				<!--  AND tb_domain.created_date <![CDATA[ >= ]]> TO_TIMESTAMP(#{dateStart}, 'YYYY-MM-DD HH24:MI:SS') -->
+				AND tb_domain.created_date <![CDATA[ >= ]]> STR_TO_DATE(#{dateStart},'%Y-%m-%d %H:%i:%S')
+			</if>
+			<if test="dateEnd != null and dateEnd != ''">
+				<!--  AND tb_domain.created_date <![CDATA[ <= ]]> TO_TIMESTAMP(#{dateEnd}, 'YYYY-MM-DD HH24:MI:SS') -->
+				AND tb_domain.created_date <![CDATA[ <= ]]> STR_TO_DATE(#{dateEnd},'%Y-%m-%d %H:%i:%S')
+			</if>
+        </where>
+	</sql>
+	
+	<sql id="sqlSelectListConditionAdmin">
+		<where>
+			NOT tb_domain.request_status in ('1', '5')
+			<if test="requester != null and requester != ''">
+				AND (LOWER(tb_domain.username) = LOWER(#{requester}) OR LOWER(users.firstname) = LOWER(#{requester}))
+			</if>
+			<if test="rejectionReason != null and rejectionReason != ''">
+				<bind name="patternRejectionReason" value="'%' + _parameter.rejectionReason + '%'" />
+				AND tb_domain.rejection_reason LIKE #{patternRejectionReason}
+			</if>
+			<if test="queryContent != null and queryContent != ''">
+				<bind name="patternQueryContent" value="'%' + _parameter.queryContent + '%'" />
+				AND (LOWER(tb_domain.domain) LIKE LOWER(#{patternQueryContent}))
+			</if>
+			<if test="requestStatus != null">
+				AND tb_domain.request_status IN
+				<foreach item="item" collection="requestStatus" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="dateStart != null and dateStart != ''">
+				<!-- AND tb_domain.created_date <![CDATA[ >= ]]> TO_TIMESTAMP(#{dateStart}, 'YYYY-MM-DD HH24:MI:SS')  -->
+				AND tb_domain.created_date <![CDATA[ >= ]]> STR_TO_DATE(#{dateStart},'%Y-%m-%d %H:%i:%S')
+			</if>
+			<if test="dateEnd != null and dateEnd != ''">
+				<!--  AND tb_domain.created_date <![CDATA[ <= ]]> TO_TIMESTAMP(#{dateEnd}, 'YYYY-MM-DD HH24:MI:SS') -->
+				AND tb_domain.created_date <![CDATA[ <= ]]> STR_TO_DATE(#{dateEnd},'%Y-%m-%d %H:%i:%S')
+			</if>
+        </where>
+	</sql>
+	
+	<sql id="sqlSelectListOrderBy">
+		ORDER BY
+			${orderby} ${ordertype}
+		LIMIT #{limit} OFFSET #{offset}
+	</sql>
+	
+	<sql id="sqlSelectListOrderByApproved2">
+        ORDER BY
+			tb_domain.request_id DESC
+    </sql>
+    
+	<select id="selectCountApproved" parameterType="map" resultType="java.lang.Integer">
+		SELECT COUNT(request_id)
+		FROM tb_domain
+		LEFT JOIN users
+			ON
+			tb_domain.username = users.username
+		<include refid="sqlSelectListConditionApproved" />
+	</select>
+	<select id="searchDomainCount" parameterType="map" resultType="java.lang.Integer">
+   		SELECT COUNT(request_id)
+		FROM tb_domain
+		WHERE
+			tb_domain.request_status in ('1', '2', '3')
+			AND
+			domain = #{domain}
+			<if test="requestId != null and requestId != ''">
+				AND NOT tb_domain.request_id = #{requestId}
+			</if>
+	</select>
+		
+	<select id="selectCountAdmin" parameterType="map" resultType="java.lang.Integer">
+   		SELECT COUNT(request_id)
+		FROM tb_domain
+		LEFT JOIN users
+			ON
+			tb_domain.username = users.username
+		<include refid="sqlSelectListConditionAdmin" />
+	</select>
+	
+	<select id="selectListApproved" parameterType="map" resultType="lg.cns.ds.domain.Domain">
+		<include refid="sqlSelectList" />
+		<include refid="sqlSelectListConditionApproved" />
+		<include refid="sqlSelectListOrderBy" />
+	</select>
+	
+	<select id="selectListApproved2" parameterType="map" resultType="lg.cns.ds.domain.Domain">
+		<include refid="sqlSelectList" />
+		<include refid="sqlSelectListConditionApproved2" />
+		<include refid="sqlSelectListOrderByApproved2" />
+	</select>
+	
+	<select id="selectList" parameterType="map" resultType="lg.cns.ds.domain.Domain">
+		<include refid="sqlSelectList" />
+		<include refid="sqlSelectListConditionUser" />
+		<include refid="sqlSelectListOrderBy" />
+	</select>
+	
+	<select id="selectListAdmin" parameterType="map" resultType="lg.cns.ds.domain.Domain">
+		<include refid="sqlSelectList" />
+		<include refid="sqlSelectListConditionAdmin" />
+		<include refid="sqlSelectListOrderBy" />
+	</select>
+	
+	<insert id="insert" parameterType="lg.cns.ds.domain.Domain" useGeneratedKeys="true" keyProperty="requestId" keyColumn="request_id">
+		INSERT INTO tb_domain
+			(
+				request_type,
+				request_status,
+				regist_status,
+				is_normal,
+				username,
+				created_date,
+				approved_date,
+				domain,
+				type,
+				word_union_kor,
+				word_union_eng,
+				data_type,
+				data_length,
+				definition,
+				word1_id,
+				word2_id
+			)
+		VALUES
+			(
+				#{requestType},
+				#{requestStatus},
+				#{registStatus},
+				#{isNormal},
+				#{username},
+				now(),
+				null,
+				#{domain},
+				#{type},
+				#{wordUnionKor},
+				#{wordUnionEng},
+				#{dataType},
+				#{dataLength},
+				#{definition},
+				#{word1Id},
+				#{word2Id}
+			)
+	</insert>
+	
+	<update id="update" parameterType="lg.cns.ds.domain.Domain">
+		UPDATE tb_domain SET
+			domain = #{domain}
+			, type = #{type}
+			, word_union_kor = #{wordUnionKor}
+			, word_union_eng = #{wordUnionEng}
+			, data_type = #{dataType}
+			, data_length = #{dataLength}
+			, definition = #{definition}
+			, is_normal = #{isNormal}
+			, word1_id = #{word1Id}
+			, word2_id = #{word2Id}
+			, regist_status = CASE WHEN request_status = '4' THEN '2' ELSE '1' END
+		WHERE
+			request_id = #{requestId}
+			AND
+			username = #{username}
+	</update>
+	
+	<update id="updateRejectionReason" parameterType="lg.cns.ds.domain.Domain">
+		UPDATE tb_domain SET
+			rejection_reason = #{rejectionReason}
+		WHERE
+			request_id = #{requestId}
+			AND
+			request_status in ('4', '2')
+	</update>
+
+	<update id="makeRequest" parameterType="java.util.HashMap">
+		UPDATE tb_domain SET
+			request_status = '2',
+			created_date = now()
+		WHERE
+			request_id IN
+			<foreach item="item" collection="aSelectedRequestId" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+			AND
+			username = #{username}
+			AND
+			request_status in ('1', '4')
+	</update>
+
+	<update id="cancelRequest" parameterType="java.util.HashMap">
+		UPDATE tb_domain SET
+			request_status = '5'
+		WHERE
+			request_id IN
+			<foreach item="item" collection="aSelectedRequestId" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+			AND
+			username = #{username}
+			AND
+			(request_status in ('1', '2', '4') OR request_status IS NULL)
+	</update>
+	
+	<update id="approveRequest" parameterType="java.util.HashMap">		
+		UPDATE tb_domain SET
+			request_status = '3'
+		WHERE
+			request_id IN
+			<foreach item="item" collection="aSelectedRequestId" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+			AND
+			request_status = '2'
+	</update>
+	
+	<update id="rejectRequest" parameterType="java.util.HashMap">		
+		UPDATE tb_domain SET
+			request_status = '4'
+		WHERE
+			request_id IN
+			<foreach item="item" collection="aSelectedRequestId" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+			AND
+			request_status = '2'
+	</update>
+</mapper>

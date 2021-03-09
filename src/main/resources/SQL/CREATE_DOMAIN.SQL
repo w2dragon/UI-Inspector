@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS "tb_domain";
+
+CREATE TABLE "tb_domain" (
+   "domain" VARCHAR NULL DEFAULT NULL COLLATE "C",
+   "type" VARCHAR NULL DEFAULT NULL,
+   "word_union_kor" VARCHAR NULL DEFAULT NULL COLLATE "C",
+   "word_union_eng" VARCHAR NULL DEFAULT NULL COLLATE "C",
+   "data_type" VARCHAR NULL DEFAULT NULL,
+   "data_length" VARCHAR NULL DEFAULT NULL,
+   "definition" VARCHAR NULL DEFAULT NULL COLLATE "C",
+   "word1_id" INTEGER NULL DEFAULT NULL,
+   "word2_id" INTEGER NULL DEFAULT NULL
+) INHERITS (tb_request)
+
+TABLESPACE pg_default;

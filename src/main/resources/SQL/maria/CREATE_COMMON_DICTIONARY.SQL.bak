@@ -1,0 +1,14 @@
+DROP TABLE IF EXISTS "tb_common_dict";
+
+CREATE TABLE "tb_common_dict" (
+   "id" SERIAL NOT NULL,
+   "grp_id" VARCHAR NULL DEFAULT NULL,
+   "grp_code" VARCHAR NULL DEFAULT NULL,
+   "name" VARCHAR NULL DEFAULT NULL,
+   "attr1" VARCHAR NULL DEFAULT NULL,
+   "attr2" VARCHAR NULL DEFAULT NULL,
+   "attr3" VARCHAR NULL DEFAULT NULL,
+   PRIMARY KEY ("id")
+)
+
+TABLESPACE pg_default;

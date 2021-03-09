@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="lg.cns.ds.mapper.userMapper">
+	
+	<select id="findByUsername" parameterType="String" resultType="User">
+		SELECT * 
+		FROM USERS
+		WHERE USERNAME = #{username}
+	</select>
+	
+	<select id="getUserId" parameterType="User" resultType="User">
+		SELECT * 
+		FROM USERS
+		WHERE 
+		USERNAME = #{username} 
+		<if test="firstname != null and firstname != ''">
+		AND FIRSTNAME = #{firstname}
+		</if>
+	</select>
+	
+	<insert id="insert" parameterType="User">
+		INSERT INTO USERS
+			(USERNAME, PASSWORD, ROLE, FIRSTNAME, LASTNAME, IS_ENABLED)
+		VALUES
+			(#{username}, #{password}, #{role}, #{firstname}, #{lastname}, #{isEnabled})	
+	</insert>
+	
+	<update id="changePass" parameterType="User">
+		UPDATE USERS
+		SET 
+			PASSWORD = #{password}	
+		WHERE USERNAME = #{username}
+		
+	</update>
+</mapper>

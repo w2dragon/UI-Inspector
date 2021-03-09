@@ -1,0 +1,14 @@
+DROP TABLE IF EXISTS tb_request;
+
+CREATE TABLE tb_request (
+   request_id INT AUTO_INCREMENT PRIMARY KEY,
+   request_type VARCHAR(10) NULL,
+   request_status VARCHAR(20) NULL,
+   regist_status VARCHAR(10) NULL,
+   is_normal VARCHAR(10) NULL,
+   username VARCHAR(100) NULL,
+   created_date DATETIME,
+   approved_date DATETIME,
+   rejection_reason VARCHAR(300) NULL
+);
+

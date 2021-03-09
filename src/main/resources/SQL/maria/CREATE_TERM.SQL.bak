@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS tb_term;
+
+CREATE TABLE tb_term (
+   term VARCHAR(100) ,
+   domain_id INT ,
+   word_decomposition_kor VARCHAR(200) ,
+   word_decomposition_eng VARCHAR(200) ,
+   definition VARCHAR(500) 
+) ;

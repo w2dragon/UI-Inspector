@@ -1,0 +1,13 @@
+DROP TABLE IF EXISTS tb_domain;
+
+CREATE TABLE tb_domain (
+   domain VARCHAR(100) ,
+   type VARCHAR(100) ,
+   word_union_kor VARCHAR(200) ,
+   word_union_eng VARCHAR(200) ,
+   data_type VARCHAR(50) ,
+   data_length VARCHAR(10) ,
+   definition VARCHAR(500) ,
+   word1_id INT ,
+   word2_id INT 
+) ;
